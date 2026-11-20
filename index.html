@@ -93,7 +93,13 @@
   .f-item.word{font-size:min(40vh,24vw)}
   .f-items.line{flex-wrap:nowrap}.f-items.line{gap:1vw}.f-items.line .f-item{padding:0 .8vw}
   .f-items.line.has-sel .f-item:not(.sel){opacity:.22}
-  .f-items.line .f-item.sel{transform:scale(1.25)}
+  .w-solo{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vh}
+  .strip{display:flex;gap:10px;direction:rtl;flex-wrap:wrap;justify-content:center}
+  .mini{border:2px solid #eadfbf;background:#fff;border-radius:12px;padding:0 12px;font-size:min(5vh,3vw);opacity:.6}
+  .mini.sel{opacity:1;border-color:var(--sel);background:#eaf1ff}
+  .mini.ok{color:var(--ok)} .mini.ko{color:var(--ko)}
+  .solo{border:none;background:transparent;font-size:min(42vh,26vw);line-height:1.2;animation:pop .25s ease-out}
+  .solo.ok{color:var(--ok)} .solo.ko{color:var(--ko)}
   .f-item:hover{background:#fff8dc}
   .f-item.sel{border-color:var(--sel);background:#eaf1ff}
   .f-item.ok{color:var(--ok)} .f-item.ko{color:var(--ko)}
@@ -105,12 +111,23 @@
   .v-btn.ok{background:var(--ok)} .v-btn.ko{background:var(--ko)}
   .v-btn.listen{background:var(--sel)} .v-btn small{font-size:12px;font-weight:700;opacity:.85}
   .f-bottom .sep{width:2px;height:44px;background:#eadfbf}
+  .v-btn.rec{background:#c62828}
+  .v-btn.rec.on{animation:recpulse 1s infinite}
+  @keyframes recpulse{50%{box-shadow:0 0 0 8px rgba(198,40,40,.25)}}
   .v-btn.clear{background:#fff;color:var(--muted);border:2px solid var(--gold);box-shadow:none;font-size:16px;padding:13px 20px}
   .v-help{color:var(--muted);font-size:13px;font-weight:600;position:absolute;bottom:8px;left:0;right:0;text-align:center}
 
   /* Tracé */
   .w-wrap{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 20px 14px}
-  .w-wrap svg{flex:1;width:100%;min-height:0}
+  .w-area{position:relative;flex:1;width:100%;min-height:0}
+  .w-area svg{position:absolute;inset:0;width:100%;height:100%}
+  #drawCv{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;touch-action:none}
+  .w-wrap.drawing #drawCv{pointer-events:auto;cursor:crosshair}
+  .w-wrap.drawing .w-guide,.w-wrap.drawing .w-ink,.w-wrap.drawing .w-pen{display:none}
+  .w-ctrl button.me{background:var(--sel);border-color:var(--sel);color:#fff}
+  .w-wrap.drawing .w-ctrl button:not(.me):not(.dr){display:none}
+  .w-ctrl button.dr{display:none}
+  .w-wrap.drawing .w-ctrl button.dr{display:inline-block}
   .w-ctrl{display:flex;gap:10px;align-items:center}
   .w-ctrl button{border:2px solid var(--gold);background:#fff;border-radius:12px;padding:8px 16px;font-weight:800;font-size:16px}
   .w-ctrl button.main{background:var(--brown);border-color:var(--brown);color:#fff}
@@ -366,7 +383,8 @@
     <button class="v-btn clear" id="btnClear">Effacer</button>
     <span class="sep"></span>
     <button class="v-btn listen" id="btnListen">🔊 Écouter</button>
-    <button class="v-btn clear" id="btnVoice" title="Ajouter un fichier audio enregistré par le prof">🎙 Voix du prof</button>
+    <button class="v-btn rec" id="btnRec" title="Enregistrer ta voix sur cet élément">🎙 Enregistrer</button>
+    <button class="v-btn clear" id="btnVoice" title="Ou choisir un fichier audio">📁</button>
     <div class="v-help" id="vHelp"></div>
   </div>
 </div>
@@ -454,7 +472,7 @@ document.querySelectorAll('.tab[data-p]').forEach(t=>t.onclick=()=>setPage(t.dat
 const focusEl=document.getElementById('focus'),stage=document.getElementById('fStage'),content=document.getElementById('fContent');
 function openFocus(i){current=i;selected=-1;focusEl.classList.add('open');renderFocus();spin();}
 function closeFocus(){stopTrace();focusEl.classList.remove('open');current=-1;renderPage();}
-function go(d){if(current<0)return;stopTrace();const n=SEQ().length;current=(current+d+n)%n;selected=-1;renderFocus();spin();}
+function go(d){if(current<0)return;if(recState)recState.mr.stop();stopTrace();const n=SEQ().length;current=(current+d+n)%n;selected=-1;renderFocus();spin();}
 function renderFocus(){
   const s=SEQ()[current];
   setTimeout(updateVoiceBtn,0);
@@ -467,6 +485,14 @@ function renderFocus(){
     help.textContent='E = écouter · ← → pour naviguer · R = Réussi · A = À revoir · Échap = revenir';
   }else if(s.type==='items'){
     const st=itemStatus[s.id]||[],word=s.items.length===1;
+    if(s.line&&selected>=0){
+      content.innerHTML=`<div class="w-solo"><div class="strip ar">${s.items.map((it,k)=>`<button class="mini ar ${st[k]||''} ${k===selected?'sel':''}" data-k="${k}">${it}</button>`).join('')}</div>
+        <button class="solo ar ${st[selected]||''}" data-k="${selected}">${s.items[selected]}</button></div>`;
+      content.querySelectorAll('.mini').forEach(b=>b.onclick=()=>{selected=+b.dataset.k;renderFocus();});
+      content.querySelector('.solo').onclick=()=>{selected=-1;renderFocus();};
+      help.textContent='Mot isolé : R = Réussi · A = À revoir (passe au mot suivant) · clique sur le mot pour revenir à la ligne';
+      return;
+    }
     content.innerHTML=`<div class="f-items ar ${s.line?'line':''} ${selected>=0?'has-sel':''}">${s.items.map((it,k)=>`<button style="${s.line?`font-size:min(15vh,${(27/s.items.length).toFixed(1)}vw)`:''}" class="f-item ar ${word?'word':''} ${st[k]||''} ${k===selected?'sel':''}" data-k="${k}">${it}</button>`).join('')}</div>`;
     if(!word)content.querySelectorAll('.f-item').forEach(b=>b.onclick=()=>{const k=+b.dataset.k;selected=selected===k?-1:k;renderFocus();});
     const what=s.line?'un mot':'une lettre';
@@ -474,7 +500,7 @@ function renderFocus(){
       :(selected<0?`Clique sur ${what} pour le mettre en évidence et le noter seul · sinon la note s’applique à tout`:`${s.line?'Mot':'Lettre'} en évidence : R = Réussi · A = À revoir · reclique pour revenir à la ligne`);
   }else{
     renderTrace(s);
-    help.textContent='Espace = lancer / étape suivante · R = Réussi · A = À revoir';
+    help.textContent='Espace = étape suivante · ✍️ = l’élève écrit · R = Réussi · A = À revoir';
   }
 }
 function validate(k){
@@ -498,16 +524,16 @@ function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const
 function stopTrace(){if(tr&&tr.raf)cancelAnimationFrame(tr.raf);if(tr)tr.raf=null;}
 function renderTrace(w){
   stopTrace();
-  content.innerHTML=`<div class="w-wrap"><svg id="wsvg"></svg>
+  content.innerHTML=`<div class="w-wrap"><div class="w-area"><svg id="wsvg"></svg><canvas id="drawCv"></canvas></div>
     <div class="w-ctrl"><button class="main" id="tPlay">▶ Montrer le tracé</button><button id="tStep">⏭ Étape suivante</button>
-    <span class="stepinfo" id="tInfo"></span><button id="tSpeed">🐢 Lent</button><button id="tReset">↺ Recommencer</button></div></div>`;
+    <span class="stepinfo" id="tInfo"></span><button id="tSpeed">🐢 Lent</button><button id="tReset">↺ Recommencer</button><button class="me" id="tMe">✍️ À toi d'écrire</button><button class="dr" id="tErase">🧽 Effacer</button></div></div>`;
   const svg=document.getElementById('wsvg');
   const [x0,y0,x1,y1]=w.box,pad=170;
   svg.setAttribute('viewBox',`${x0-pad} ${y0-pad} ${x1-x0+2*pad} ${y1-y0+2*pad}`);
   const defs=el('defs',{},svg);
   // ligne d'écriture
   el('line',{x1:x0-pad,x2:x1+pad,y1:0,y2:0,stroke:'#d8cfb8','stroke-width':6,'stroke-dasharray':'4 22','stroke-linecap':'round'},svg);
-  const ghost=el('g',{fill:'#ece6d4'},svg), ink=el('g',{fill:'#111'},svg), guide=el('g',{},svg), marks=el('g',{},svg);
+  const ghost=el('g',{fill:'#ece6d4'},svg), ink=el('g',{fill:'#111',class:'w-ink'},svg), guide=el('g',{class:'w-guide'},svg), marks=el('g',{},svg);
   // construction des étapes
   const strokes=[];
   w.glyphs.forEach((g,gi)=>{
@@ -534,7 +560,7 @@ function renderTrace(w){
     el('circle',{r:34,fill:'#fff',stroke:'#f2c21b','stroke-width':6},g);
     const t=el('text',{'text-anchor':'middle','dominant-baseline':'central','font-size':40,'font-weight':800,fill:'#a0521d','font-family':'Nunito'},g);t.textContent=i+1;});
   // stylo + flèche
-  const pen=el('g',{opacity:0},svg);
+  const pen=el('g',{opacity:0,class:'w-pen'},svg);
   el('circle',{r:30,fill:'#f2c21b',stroke:'#a0521d','stroke-width':6},pen);
   el('path',{d:'M-14 -14 L18 0 L-14 14 Z',fill:'#a0521d'},pen);
   tr={w,strokes,pen,idx:0,prog:0,slow:false,raf:null,mode:null};
@@ -543,6 +569,26 @@ function renderTrace(w){
   document.getElementById('tStep').onclick=()=>playStep();
   document.getElementById('tReset').onclick=()=>{renderTrace(w);};
   document.getElementById('tSpeed').onclick=e=>{tr.slow=!tr.slow;e.target.textContent=tr.slow?'🐇 Normal':'🐢 Lent';};
+  setupDraw(svg);
+}
+function setupDraw(svg){
+  const wrap=content.querySelector('.w-wrap'),cv=document.getElementById('drawCv'),c=cv.getContext('2d'),me=document.getElementById('tMe');
+  let lines=[],cur=null;
+  const size=()=>{const r=cv.getBoundingClientRect(),d=window.devicePixelRatio||1;cv.width=r.width*d;cv.height=r.height*d;c.setTransform(d,0,0,d,0,0);draw();};
+  const lw=()=>{const m=svg.getScreenCTM();return Math.max(6,(m?m.a:.3)*58);};
+  const draw=()=>{const r=cv.getBoundingClientRect();c.clearRect(0,0,r.width,r.height);c.strokeStyle='#2f6fde';c.lineCap='round';c.lineJoin='round';c.lineWidth=lw();
+    lines.forEach(l=>{c.beginPath();l.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]));if(l.length===1)c.lineTo(l[0][0]+.1,l[0][1]);c.stroke();});};
+  const pos=e=>{const r=cv.getBoundingClientRect();return [e.clientX-r.left,e.clientY-r.top];};
+  cv.onpointerdown=e=>{cur=[pos(e)];lines.push(cur);cv.setPointerCapture(e.pointerId);draw();};
+  cv.onpointermove=e=>{if(cur){cur.push(pos(e));draw();}};
+  cv.onpointerup=()=>{cur=null;};
+  document.getElementById('tErase').onclick=()=>{lines=[];draw();};
+  me.onclick=()=>{
+    const on=!wrap.classList.contains('drawing');
+    if(on){stopTrace();wrap.classList.add('drawing');me.textContent='👀 Revoir le modèle';size();say('À toi ! Suis la lettre grise avec ton doigt.');document.getElementById('tInfo').textContent='';}
+    else{wrap.classList.remove('drawing');me.textContent='✍️ À toi d’écrire';updateInfo();}
+  };
+  window.addEventListener('resize',()=>{if(document.body.contains(cv)&&wrap.classList.contains('drawing'))size();});
 }
 function updateInfo(){const i=document.getElementById('tInfo');if(!i||!tr)return;const n=tr.strokes.length;
   i.textContent=tr.idx>=n?'Tracé terminé ✓':`Étape ${tr.idx+1} / ${n}`;}
@@ -723,6 +769,24 @@ function pickVoice(){
   inp.onchange=async()=>{const f=inp.files[0];if(!f)return;await saveRec(t.key,f);updateVoiceBtn();sound('ok');say('Voix du prof enregistrée !','jump');};
   inp.click();
 }
+let recState=null;
+async function toggleRec(){
+  const b=document.getElementById('btnRec');
+  if(recState){recState.mr.stop();return;}
+  const t=audioTarget();if(!t)return;
+  let stream;
+  try{stream=await navigator.mediaDevices.getUserMedia({audio:true});}
+  catch(e){say('Micro non disponible ici : autorise le micro, ou utilise 📁');return;}
+  const mr=new MediaRecorder(stream),chunks=[],t0=Date.now();
+  mr.ondataavailable=e=>chunks.push(e.data);
+  mr.onstop=async()=>{clearInterval(recState.tick);stream.getTracks().forEach(x=>x.stop());recState=null;
+    b.classList.remove('on');b.textContent='🎙 Enregistrer';
+    const blob=new Blob(chunks,{type:mr.mimeType||'audio/webm'});
+    if(blob.size<500){say('Enregistrement trop court, recommence.');return;}
+    await saveRec(t.key,blob);updateVoiceBtn();sound('ok');say('Ta voix est enregistrée sur cet élément !','jump');};
+  recState={mr,tick:setInterval(()=>{b.textContent=`⏹ Arrêter (${Math.round((Date.now()-t0)/1000)} s)`;},250)};
+  b.classList.add('on');b.textContent='⏹ Arrêter (0 s)';mr.start();say('Je t’écoute… dis la lettre puis clique sur Arrêter');
+}
 function updateVoiceBtn(){const t=audioTarget(),b=document.getElementById('btnListen');if(!b||!t)return;
   b.innerHTML=recs[t.key]?'🔊 Écouter <small>(voix du prof)</small>':'🔊 Écouter <small>(voix provisoire)</small>';}
 
@@ -735,6 +799,7 @@ document.getElementById('btnOk').onclick=()=>validate('ok');
 document.getElementById('btnKo').onclick=()=>validate('ko');
 document.getElementById('btnClear').onclick=clearCurrent;
 document.getElementById('btnListen').onclick=listen;
+document.getElementById('btnRec').onclick=toggleRec;
 document.getElementById('btnVoice').onclick=pickVoice;
 document.getElementById('btnFull').onclick=toggleFull;
 document.getElementById('btnFull2').onclick=toggleFull;
