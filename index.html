@@ -217,14 +217,22 @@
   .revise{font-size:12px;color:#c0392b;font-weight:700;margin-top:3px}
   .revise .ar{font-size:15px}
   .rem label{font-size:14px;display:block}
-  .rem textarea{width:100%;height:68px;border:none;border-radius:8px;padding:6px 8px;font:inherit;font-size:13px;resize:none;margin-top:2px;outline:none}
+  .rem textarea{width:100%;height:52px;border:none;border-radius:8px;padding:6px 8px;font:inherit;font-size:13px;resize:none;margin-top:2px;outline:none}
   .rem .sig{font-size:14px;margin-top:4px;display:flex;align-items:center;gap:6px}
   .rem .sig input{border:none;border-bottom:1.5px dotted #a08a50;background:transparent;font-family:"Segoe Script","Brush Script MT",cursive;font-size:16px;flex:1;outline:none}
   .sh-foot{background:#f9c94a;text-align:center;font-weight:700;font-size:12px;padding:3px}
-  #penCanvas{position:absolute;inset:0;z-index:5;pointer-events:none;touch-action:none}
+  #penCanvas{position:absolute;left:0;top:0;width:100%;height:100%;z-index:5;pointer-events:none;touch-action:none}
   .sheet.pen #penCanvas{pointer-events:auto;cursor:crosshair}
   .sheet.note .mk{cursor:copy}
-  .note-pin{position:absolute;z-index:6;background:#fff;border:2px solid #d62828;color:#c62828;border-radius:10px;padding:2px 8px;font-size:12px;font-weight:800;max-width:170px;box-shadow:0 2px 6px rgba(0,0,0,.15);cursor:pointer}
+  .nbadge,.note-pin{width:20px;height:20px;border-radius:50% 50% 50% 2px;background:#d62828;color:#fff;border:2px solid #fff;font:800 11px Nunito,sans-serif;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 1px 4px rgba(0,0,0,.3);cursor:pointer;direction:ltr}
+  .nbadge{position:absolute;top:-6px;right:-10px;z-index:3}
+  .note-pin{position:absolute;z-index:6;transform:translate(-50%,-100%)}
+  #notePop{position:absolute;z-index:8;width:230px;background:#fff;border:2px solid #d62828;border-radius:12px;padding:8px 10px;box-shadow:0 6px 18px rgba(0,0,0,.18);font-size:13px}
+  #notePop .np-t{color:#c62828;font-size:12px;margin-bottom:3px} #notePop .np-x{font-weight:700;line-height:1.4}
+  #notePop .np-a{display:flex;gap:6px;justify-content:flex-end;margin-top:6px}
+  #notePop button{border:1.5px solid #eadfbf;background:#fff;border-radius:8px;padding:3px 8px;font-weight:800;font-size:12px}
+  .notelist{font-size:11.5px;line-height:1.35;margin-top:3px;max-height:44px;overflow:auto}
+  .notelist b{display:inline-flex;width:15px;height:15px;border-radius:50%;background:#d62828;color:#fff;font-size:10px;align-items:center;justify-content:center;margin-right:3px}
 
   .modal{position:fixed;inset:0;background:rgba(40,30,0,.45);display:none;align-items:center;justify-content:center;z-index:60}
   .modal.open{display:flex}
@@ -378,6 +386,7 @@
         <div class="rem">
           <label>Remarques :</label>
           <textarea id="remarks" placeholder="Écris une remarque pour l'élève…"></textarea>
+          <div class="notelist" id="noteList"></div>
           <div class="sig">Signature : <input id="sign" value="Le professeur"></div>
         </div>
       </div>
@@ -665,8 +674,14 @@ function renderExam(){
   renderNotes();
 }
 function toRevise(){const s=new Set();for(const k in exMarks)if(exMarks[k]==='circle'){const [r,c,i]=k.split('-').map(Number);s.add(EXAM[r][c].split(' ')[i]);}return [...s];}
+function eraseInkAt(e){
+  const r=sheet.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,before=inkStrokes.length;
+  inkStrokes=inkStrokes.filter(s=>!s.some(p=>Math.hypot(p[0]*r.width-x,p[1]*r.height-y)<16));
+  if(inkStrokes.length!==before){redrawInk();sound('tick');return true;}return false;
+}
 function markItem(key,e){
-  if(tool==='note'){addNote(e);return;}
+  if(tool==='erase'&&eraseInkAt(e))return;
+  if(tool==='note'){addNote(e,key);return;}
   if(tool==='pen')return;
   if(tool==='erase'){delete exMarks[key];}
   else exMarks[key]=exMarks[key]===tool?undefined:tool;
@@ -676,22 +691,46 @@ function markItem(key,e){
 }
 /* Remarques épinglées sur la feuille */
 const sheet=document.getElementById('sheet');
-function addNote(e){
+function addNote(e,key){
   const r=sheet.getBoundingClientRect();
-  openModal(`<h3>Remarque sur la feuille</h3><p>Elle apparaîtra à cet endroit, sur la copie de l'élève.</p>
+  const what=key?`sur la lettre <span class="ar" style="font-size:22px">${keyText(key)}</span>`:'à cet endroit de la feuille';
+  openModal(`<h3>Remarque ${what}</h3><p>Une pastille 💬 apparaîtra ${key?'au-dessus de la lettre':'à cet endroit'}. L'élève clique dessus pour la lire, et elle figure aussi dans le PDF.</p>
     <textarea id="noteTxt" rows="3" placeholder="Ex. : attention au point du ز"></textarea>
     <div class="row"><button onclick="closeModal()">Annuler</button><button class="main" id="noteOk">Ajouter</button></div>`);
   setTimeout(()=>document.getElementById('noteTxt').focus(),50);
   document.getElementById('noteOk').onclick=()=>{const t=document.getElementById('noteTxt').value.trim();
-    if(t)notes.push({x:(e.clientX-r.left)/r.width*100,y:(e.clientY-r.top)/r.height*100,text:t});closeModal();renderNotes();};
+    if(t)notes.push({key:key||null,x:(e.clientX-r.left)/r.width*100,y:(e.clientY-r.top)/r.height*100,text:t});closeModal();renderNotes();};
 }
+function keyText(k){const [r,c,i]=k.split('-').map(Number);return EXAM[r][c].split(' ')[i];}
 function renderNotes(){
-  sheet.querySelectorAll('.note-pin').forEach(n=>n.remove());
-  notes.forEach((n,i)=>{const d=document.createElement('div');d.className='note-pin';d.textContent='💬 '+n.text;
-    d.style.left=Math.min(n.x,72)+'%';d.style.top=(n.y+2)+'%';d.title='Gomme : cliquer pour supprimer';
-    d.onclick=()=>{if(tool==='erase'){notes.splice(i,1);renderNotes();}};sheet.appendChild(d);});
+  sheet.querySelectorAll('.nbadge,.note-pin').forEach(n=>n.remove());hideNotePop();
+  notes.forEach((n,i)=>{
+    const d=document.createElement('button');d.textContent=i+1;d.title='Voir la remarque';
+    d.onclick=ev=>{ev.stopPropagation();if(tool==='erase'){notes.splice(i,1);renderNotes();sound('tick');return;}showNotePop(i,d);};
+    const host=n.key&&sheet.querySelector(`.mk[data-key="${n.key}"]`);
+    if(host){d.className='nbadge';host.appendChild(d);}
+    else{d.className='note-pin';d.style.left=n.x+'%';d.style.top=n.y+'%';sheet.appendChild(d);}
+  });
+  const list=document.getElementById('noteList');
+  if(list)list.innerHTML=notes.map((n,i)=>`<div><b>${i+1}</b>${n.key?` <span class="ar">${keyText(n.key)}</span> :`:''} ${n.text.replace(/</g,'&lt;')}</div>`).join('');
 }
-sheet.addEventListener('click',e=>{if(tool==='note'&&!e.target.closest('.mk,.note-pin,input,textarea,button'))addNote(e);});
+function showNotePop(i,anchor){
+  hideNotePop();const n=notes[i],p=document.createElement('div');p.id='notePop';
+  p.innerHTML=`<div class="np-t"><b>💬 Remarque ${i+1}</b>${n.key?` · <span class="ar">${keyText(n.key)}</span>`:''}</div><div class="np-x">${n.text.replace(/</g,'&lt;')}</div>
+    <div class="np-a"><button id="npDel">🗑 Supprimer</button><button id="npClose">Fermer</button></div>`;
+  sheet.appendChild(p);
+  const r=sheet.getBoundingClientRect(),a=anchor.getBoundingClientRect();
+  p.style.left=Math.max(4,Math.min(a.left-r.left-110,r.width-234))+'px';p.style.top=(a.bottom-r.top+6)+'px';
+  p.onclick=ev=>ev.stopPropagation();
+  document.getElementById('npDel').onclick=()=>{notes.splice(i,1);renderNotes();};
+  document.getElementById('npClose').onclick=hideNotePop;
+}
+function hideNotePop(){const p=document.getElementById('notePop');if(p)p.remove();}
+sheet.addEventListener('click',e=>{
+  if(e.target.closest('#notePop'))return;hideNotePop();
+  if(e.target.closest('.mk,.nbadge,.note-pin,input,textarea,button'))return;
+  if(tool==='erase'){eraseInkAt(e);return;}
+  if(tool==='note')addNote(e);});
 
 /* Stylo */
 const cv=document.getElementById('penCanvas'),cx=cv.getContext('2d');let drawing=null;
@@ -703,6 +742,7 @@ cv.addEventListener('pointerdown',e=>{if(tool!=='pen')return;drawing=[pt(e)];ink
 cv.addEventListener('pointermove',e=>{if(!drawing)return;drawing.push(pt(e));redrawInk();});
 cv.addEventListener('pointerup',()=>{drawing=null;});
 window.addEventListener('resize',()=>{if(page==='p15')sizeCanvas();});
+try{new ResizeObserver(()=>{if(page==='p15')sizeCanvas();}).observe(sheet);}catch(e){}
 document.getElementById('clearInk').onclick=()=>{inkStrokes=[];redrawInk();};
 
 document.querySelectorAll('.tbtn[data-tool]').forEach(b=>b.onclick=()=>{tool=b.dataset.tool;
@@ -729,7 +769,7 @@ function loadScript(src){return new Promise((ok,ko)=>{const s=document.createEle
 async function makePdf(){
   if(!libs)libs=Promise.all([loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'),loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')]);
   await libs;
-  const canvas=await html2canvas(sheet,{scale:2,backgroundColor:'#ffffff',onclone:d=>{d.querySelectorAll('input').forEach(i=>i.placeholder='');d.querySelectorAll('textarea').forEach(t=>{const div=d.createElement('div');div.textContent=t.value;div.style.cssText='background:#fff;border-radius:8px;padding:6px 8px;font-size:13px;min-height:68px;white-space:pre-wrap';t.replaceWith(div);});}});
+  const canvas=await html2canvas(sheet,{scale:2,backgroundColor:'#ffffff',onclone:d=>{d.querySelectorAll('#notePop').forEach(x=>x.remove());d.querySelectorAll('input').forEach(i=>i.placeholder='');d.querySelectorAll('textarea').forEach(t=>{const div=d.createElement('div');div.textContent=t.value;div.style.cssText='background:#fff;border-radius:8px;padding:6px 8px;font-size:13px;min-height:68px;white-space:pre-wrap';t.replaceWith(div);});}});
   const pdf=new jspdf.jsPDF({unit:'mm',format:'a4'});
   const w=190,h=w*canvas.height/canvas.width,hh=Math.min(h,277),ww=hh*canvas.width/canvas.height;
   pdf.addImage(canvas.toDataURL('image/jpeg',.92),'JPEG',(210-ww)/2,10,ww,hh);
