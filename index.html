@@ -106,12 +106,36 @@
   .arrow{position:absolute;top:50%;transform:translateY(-50%);width:60px;height:60px;border-radius:50%;border:3px solid var(--gold);background:#fff;font-size:28px;font-weight:800;color:var(--brown);display:flex;align-items:center;justify-content:center;z-index:3}
   .arrow.prev{right:-80px}.arrow.next{left:-80px}
   .f-bottom{height:104px;display:flex;align-items:center;justify-content:center;gap:18px;position:relative}
-  .v-btn{border:none;border-radius:18px;padding:15px 32px;font-size:22px;font-weight:800;color:#fff;box-shadow:0 6px 0 rgba(0,0,0,.15);transition:transform .08s}
+  .v-btn{border:none;border-radius:18px;padding:14px 24px;font-size:20px;font-weight:800;color:#fff;box-shadow:0 6px 0 rgba(0,0,0,.15);transition:transform .08s}
   .v-btn:active{transform:translateY(3px);box-shadow:0 3px 0 rgba(0,0,0,.15)}
   .v-btn.ok{background:var(--ok)} .v-btn.ko{background:var(--ko)}
   .v-btn.listen{background:var(--sel)} .v-btn small{font-size:12px;font-weight:700;opacity:.85}
   .f-bottom .sep{width:2px;height:44px;background:#eadfbf}
-  .v-btn.rec{background:#c62828}
+  .v-btn.rec{background:#c62828;font-size:16px;padding:12px 16px}
+  .v-btn.try{background:#0f8a7e}
+  .v-btn.try.on{animation:recpulse 1s infinite}
+  .p-res{position:absolute;top:16px;left:50%;transform:translateX(-50%);z-index:4;background:#fff;border:4px solid var(--gold);border-radius:22px;padding:14px 22px;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:320px;box-shadow:0 10px 30px rgba(0,0,0,.15);animation:pop .25s ease-out;text-align:center}
+  .p-res.ok{border-color:var(--ok)} .p-res.ko{border-color:var(--ko)} .p-res.wait{font-weight:800;color:var(--muted)}
+  .p-res b{font-size:22px} .p-res.ok b{color:var(--ok)} .p-res.ko b{color:var(--ko)}
+  .p-res span{font-size:14px;color:var(--muted);font-weight:600}
+  .p-score{font-size:44px;font-weight:900;line-height:1} .p-res.ok .p-score{color:var(--ok)} .p-res.ko .p-score{color:var(--ko)}
+  .p-score small{font-size:20px}
+  .p-act{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;justify-content:center}
+  .p-act button{border:2px solid var(--gold);background:#fff;border-radius:10px;padding:6px 12px;font-weight:800;font-size:14px}
+  .p-act button.main{background:#0f8a7e;border-color:#0f8a7e;color:#fff}
+  .modal .card.wide{max-width:760px;max-height:86vh;overflow:auto}
+  .essais{list-style:none;margin:8px 0 0;padding:0}
+  .essais li{display:flex;align-items:center;gap:12px;border-bottom:1px dashed #eadfbf;padding:8px 0}
+  .essais li.ok{background:var(--ok-soft)} .essais li.ko{background:var(--ko-soft)}
+  .essais .big{font-size:34px;min-width:90px;text-align:center}
+  .essais .meta{flex:1;font-size:13px;font-weight:700} .essais .meta small{color:var(--muted);font-weight:600}
+  .essais .acts{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+  .essais .acts button{border:2px solid var(--gold);background:#fff;border-radius:9px;padding:5px 9px;font-weight:800;font-size:12.5px}
+  .essais .acts .v.ok{background:var(--ok);border-color:var(--ok);color:#fff} .essais .acts .v.ko{background:var(--ko);border-color:var(--ko);color:#fff}
+  .essais .empty{color:var(--muted);font-weight:600}
+  .lvl{font-size:13px;font-weight:700;display:flex;gap:6px;align-items:center}
+  .lvl button{border:2px solid #eadfbf;background:#fff;border-radius:8px;padding:3px 10px;font-weight:800;font-size:12.5px}
+  .lvl button.on{background:var(--brown);border-color:var(--brown);color:#fff}
   .v-btn.rec.on{animation:recpulse 1s infinite}
   @keyframes recpulse{50%{box-shadow:0 0 0 8px rgba(198,40,40,.25)}}
   .v-btn.clear{background:#fff;color:var(--muted);border:2px solid var(--gold);box-shadow:none;font-size:16px;padding:13px 20px}
@@ -202,7 +226,7 @@
   .sheet.note .mk{cursor:copy}
   .note-pin{position:absolute;z-index:6;background:#fff;border:2px solid #d62828;color:#c62828;border-radius:10px;padding:2px 8px;font-size:12px;font-weight:800;max-width:170px;box-shadow:0 2px 6px rgba(0,0,0,.15);cursor:pointer}
 
-  .modal{position:fixed;inset:0;background:rgba(40,30,0,.45);display:none;align-items:center;justify-content:center;z-index:50}
+  .modal{position:fixed;inset:0;background:rgba(40,30,0,.45);display:none;align-items:center;justify-content:center;z-index:60}
   .modal.open{display:flex}
   .modal .card{position:static;background:#fff;border-radius:18px;padding:22px;max-width:440px;width:92%;display:block;border:3px solid var(--gold);box-shadow:none}
   .modal h3{margin:0 0 8px;color:var(--brown)}
@@ -284,6 +308,7 @@
     <button class="tab" data-p="p14">p.14 · Lecture & écriture</button>
     <button class="tab" data-p="p15">p.15 · Examen</button>
   </nav>
+  <button class="tool" id="btnEssais">📋 Essais à valider (0)</button>
   <button class="tool" id="btnFull">⛶ Plein écran</button>
   <button class="tool" id="btnReset">↺ Réinitialiser</button>
 </header>
@@ -369,6 +394,7 @@
     <div class="f-label" id="fLabel"></div>
     <div class="f-count" id="fCount"></div>
     <div class="spacer"></div>
+    <button class="tool" id="btnEssais2">📋 Essais à valider</button>
     <button class="tool" id="btnFull2">⛶ Plein écran</button>
     <button class="tool" id="btnClose">✕ Revenir à la page</button>
   </div>
@@ -383,7 +409,8 @@
     <button class="v-btn clear" id="btnClear">Effacer</button>
     <span class="sep"></span>
     <button class="v-btn listen" id="btnListen">🔊 Écouter</button>
-    <button class="v-btn rec" id="btnRec" title="Enregistrer ta voix sur cet élément">🎙 Enregistrer</button>
+    <button class="v-btn try" id="btnTry" title="L’élève prononce, l’outil compare avec la voix du prof">🎤 À toi de prononcer</button>
+    <button class="v-btn rec" id="btnRec" title="Le prof enregistre sa voix sur cet élément">🎙 Voix du prof</button>
     <button class="v-btn clear" id="btnVoice" title="Ou choisir un fichier audio">📁</button>
     <div class="v-help" id="vHelp"></div>
   </div>
@@ -471,8 +498,8 @@ document.querySelectorAll('.tab[data-p]').forEach(t=>t.onclick=()=>setPage(t.dat
 /* ================= FOCUS ================= */
 const focusEl=document.getElementById('focus'),stage=document.getElementById('fStage'),content=document.getElementById('fContent');
 function openFocus(i){current=i;selected=-1;focusEl.classList.add('open');renderFocus();spin();}
-function closeFocus(){stopTrace();focusEl.classList.remove('open');current=-1;renderPage();}
-function go(d){if(current<0)return;if(recState)recState.mr.stop();stopTrace();const n=SEQ().length;current=(current+d+n)%n;selected=-1;renderFocus();spin();}
+function closeFocus(){hideResult();stopTrace();focusEl.classList.remove('open');current=-1;renderPage();}
+function go(d){if(current<0)return;if(recState)recState.mr.stop();if(practicing)practicing.mr.stop();hideResult();stopTrace();const n=SEQ().length;current=(current+d+n)%n;selected=-1;renderFocus();spin();}
 function renderFocus(){
   const s=SEQ()[current];
   setTimeout(updateVoiceBtn,0);
@@ -731,7 +758,7 @@ document.getElementById('btnSend').onclick=()=>{
     <div class="row"><button class="main" onclick="closeModal()">Compris</button></div>`);
 };
 function openModal(h){document.getElementById('modalCard').innerHTML=h;document.getElementById('modal').classList.add('open');}
-function closeModal(){document.getElementById('modal').classList.remove('open');}
+function closeModal(){document.getElementById('modal').classList.remove('open');document.getElementById('modalCard').classList.remove('wide');}
 document.getElementById('modal').onclick=e=>{if(e.target.id==='modal')closeModal();};
 
 /* ================= ÉCOUTE (voix du prof) ================= */
@@ -775,12 +802,12 @@ async function toggleRec(){
   if(recState){recState.mr.stop();return;}
   const t=audioTarget();if(!t)return;
   let stream;
-  try{stream=await navigator.mediaDevices.getUserMedia({audio:true});}
+  try{stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});}
   catch(e){say('Micro non disponible ici : autorise le micro, ou utilise 📁');return;}
   const mr=new MediaRecorder(stream),chunks=[],t0=Date.now();
   mr.ondataavailable=e=>chunks.push(e.data);
   mr.onstop=async()=>{clearInterval(recState.tick);stream.getTracks().forEach(x=>x.stop());recState=null;
-    b.classList.remove('on');b.textContent='🎙 Enregistrer';
+    b.classList.remove('on');b.textContent='🎙 Voix du prof';
     const blob=new Blob(chunks,{type:mr.mimeType||'audio/webm'});
     if(blob.size<500){say('Enregistrement trop court, recommence.');return;}
     await saveRec(t.key,blob);updateVoiceBtn();sound('ok');say('Ta voix est enregistrée sur cet élément !','jump');};
@@ -789,6 +816,126 @@ async function toggleRec(){
 }
 function updateVoiceBtn(){const t=audioTarget(),b=document.getElementById('btnListen');if(!b||!t)return;
   b.innerHTML=recs[t.key]?'🔊 Écouter <small>(voix du prof)</small>':'🔊 Écouter <small>(voix provisoire)</small>';}
+
+/* ================= COMPARAISON DE PRONONCIATION (démo) =================
+   Compare la voix de l'élève à celle du prof : MFCC + alignement DTW.
+   Résultat indicatif, la validation finale reste au prof. */
+const VC={
+  async decode(blob){
+    const buf=await blob.arrayBuffer();
+    const ac=new (window.AudioContext||window.webkitAudioContext)();
+    const a=await ac.decodeAudioData(buf);ac.close&&ac.close();
+    const sr=16000,len=Math.max(1,Math.ceil(a.duration*sr));
+    const off=new OfflineAudioContext(1,len,sr);const src=off.createBufferSource();src.buffer=a;src.connect(off.destination);src.start();
+    const r=await off.startRendering();return r.getChannelData(0).slice();
+  },
+  trim(x){
+    const F=400,H=160,e=[];for(let i=0;i+F<=x.length;i+=H){let s=0;for(let j=0;j<F;j++)s+=x[i+j]*x[i+j];e.push(Math.sqrt(s/F));}
+    if(!e.length)return x;const mx=Math.max(...e),th=mx*0.12;
+    let a=e.findIndex(v=>v>th),b=e.length-1;while(b>0&&e[b]<=th)b--;
+    if(a<0)return x;return x.slice(a*H,Math.min(x.length,b*H+F));
+  },
+  fft(re,im){const n=re.length;for(let i=1,j=0;i<n;i++){let bit=n>>1;for(;j&bit;bit>>=1)j^=bit;j^=bit;if(i<j){[re[i],re[j]]=[re[j],re[i]];[im[i],im[j]]=[im[j],im[i]];}}
+    for(let len=2;len<=n;len<<=1){const ang=-2*Math.PI/len,wr=Math.cos(ang),wi=Math.sin(ang);
+      for(let i=0;i<n;i+=len){let cr=1,ci=0;for(let j=0;j<len/2;j++){const ur=re[i+j],ui=im[i+j],vr=re[i+j+len/2]*cr-im[i+j+len/2]*ci,vi=re[i+j+len/2]*ci+im[i+j+len/2]*cr;
+        re[i+j]=ur+vr;im[i+j]=ui+vi;re[i+j+len/2]=ur-vr;im[i+j+len/2]=ui-vi;const t=cr*wr-ci*wi;ci=cr*wi+ci*wr;cr=t;}}}},
+  mel(){if(this._mel)return this._mel;const N=512,sr=16000,nf=26,m=f=>2595*Math.log10(1+f/700),im=v=>700*(10**(v/2595)-1);
+    const lo=m(80),hi=m(7600),pts=[];for(let i=0;i<nf+2;i++)pts.push(Math.floor((N+1)*im(lo+(hi-lo)*i/(nf+1))/sr));
+    const fb=[];for(let k=1;k<=nf;k++){const f=new Float32Array(N/2+1);for(let j=pts[k-1];j<pts[k];j++)f[j]=(j-pts[k-1])/(pts[k]-pts[k-1]);for(let j=pts[k];j<pts[k+1];j++)f[j]=(pts[k+1]-j)/(pts[k+1]-pts[k]);fb.push(f);}
+    return this._mel=fb;},
+  mfcc(x){
+    const F=400,H=160,N=512,fb=this.mel(),out=[];
+    const y=new Float32Array(x.length);y[0]=x[0];for(let i=1;i<x.length;i++)y[i]=x[i]-0.97*x[i-1];
+    for(let i=0;i+F<=y.length;i+=H){const re=new Float32Array(N),im=new Float32Array(N);
+      for(let j=0;j<F;j++)re[j]=y[i+j]*(0.54-0.46*Math.cos(2*Math.PI*j/(F-1)));
+      this.fft(re,im);const p=new Float32Array(N/2+1);for(let j=0;j<=N/2;j++)p[j]=re[j]*re[j]+im[j]*im[j];
+      const le=fb.map(f=>{let s=0;for(let j=0;j<f.length;j++)s+=f[j]*p[j];return Math.log(s+1e-8);});
+      const c=[];for(let k=1;k<=12;k++){let s=0;for(let n=0;n<le.length;n++)s+=le[n]*Math.cos(Math.PI*k*(n+.5)/le.length);c.push(s);}
+      out.push(c);}
+    // normalisation moyenne/variance (soustraction de la moyenne : atténue les différences de micro et de voix)
+    if(out.length){for(let k=0;k<12;k++){let m=0;out.forEach(c=>m+=c[k]);m/=out.length;out.forEach(c=>c[k]-=m);}}
+    return out;
+  },
+  dtw(a,b){const n=a.length,m=b.length;if(!n||!m)return Infinity;
+    const d=(p,q)=>{let s=0;for(let k=0;k<p.length;k++)s+=(p[k]-q[k])**2;return Math.sqrt(s);};
+    let prev=new Float64Array(m+1).fill(Infinity),cur;prev[0]=0;
+    for(let i=1;i<=n;i++){cur=new Float64Array(m+1).fill(Infinity);for(let j=1;j<=m;j++){cur[j]=d(a[i-1],b[j-1])+Math.min(prev[j],cur[j-1],prev[j-1]);}prev=cur;}
+    return prev[m]/(n+m);},
+  async compare(refBlob,tryBlob){
+    const [r,t]=await Promise.all([this.decode(refBlob),this.decode(tryBlob)]);
+    const rt=this.trim(r),tt=this.trim(t);
+    if(tt.length<16000*0.12)return {score:0,silent:true};
+    const dist=this.dtw(this.mfcc(rt),this.mfcc(tt));
+    const score=Math.round(100/(1+Math.exp((dist-VC.MID)/VC.SLOPE)));
+    return {score,dist};
+  },
+  MID:20, SLOPE:1.5, PASS:50, LEVELS:{souple:21.5,normal:20,strict:18.8}
+};
+
+/* ================= ENTRAÎNEMENT À LA PRONONCIATION ================= */
+function idbStore(store,mode){return idb2().then(d=>d.transaction(store,mode).objectStore(store));}
+function idb2(){return new Promise((ok,ko)=>{try{const r=indexedDB.open('nour-essais',1);r.onupgradeneeded=()=>r.result.createObjectStore('e',{keyPath:'id'});r.onsuccess=()=>ok(r.result);r.onerror=()=>ko(r.error);}catch(e){ko(e);}});}
+let essais=[];
+(async()=>{try{const st=await idbStore('e');const q=st.getAll();q.onsuccess=()=>{essais=q.result||[];updatePending();};}catch(e){}})();
+async function saveEssai(e){essais.push(e);updatePending();try{(await idbStore('e','readwrite')).put(e);}catch(x){}}
+async function updEssai(e){try{(await idbStore('e','readwrite')).put(e);}catch(x){}updatePending();}
+function updatePending(){const n=essais.filter(e=>!e.verdict).length;['btnEssais','btnEssais2'].forEach(i=>{const b=document.getElementById(i);if(b)b.textContent=`📋 Essais à valider (${n})`;});}
+
+let practicing=null, level='normal';
+async function practice(){
+  const t=audioTarget(),b=document.getElementById('btnTry');if(!t)return;
+  if(practicing){practicing.mr.stop();return;}
+  if(!recs[t.key]){say('Le prof doit d’abord enregistrer sa voix ici (🎙 Voix du prof).','shake');return;}
+  let stream;try{stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});}catch(e){say('Micro non disponible : autorise le micro.');return;}
+  const mr=new MediaRecorder(stream),chunks=[];
+  mr.ondataavailable=e=>chunks.push(e.data);
+  mr.onstop=async()=>{clearTimeout(practicing.auto);stream.getTracks().forEach(x=>x.stop());practicing=null;b.classList.remove('on');b.textContent='🎤 À toi de prononcer';
+    const blob=new Blob(chunks,{type:mr.mimeType||'audio/webm'});showResult({loading:true});
+    let r;try{VC.MID=VC.LEVELS[level];const ref=await (await fetch(recs[t.key])).blob();r=await VC.compare(ref,blob);}catch(e){r={score:0,error:true};}
+    const s=SEQ()[current];
+    const essai={id:Date.now()+'-'+Math.random().toString(36).slice(2,6),key:t.key,text:t.text,label:s?s.label:'',score:r.score,ok:r.score>=VC.PASS,date:new Date().toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'}),blob};
+    if(!r.silent&&!r.error)await saveEssai(essai);
+    showResult({...r,essai});};
+  practicing={mr,auto:setTimeout(()=>{if(mr.state==='recording')mr.stop();},4000)};
+  b.classList.add('on');b.textContent='⏹ J’ai fini';mr.start();say('Écoute le prof, puis prononce !');
+}
+let lastTryUrl=null;
+function showResult(r){
+  let box=document.getElementById('pResult');if(!box){box=document.createElement('div');box.id='pResult';stage.appendChild(box);}
+  if(r.loading){box.className='p-res wait';box.innerHTML='⏳ Je compare avec la voix du prof…';return;}
+  if(r.silent||r.error){box.className='p-res ko';box.innerHTML=`<b>Je n’ai rien entendu</b><span>Rapproche-toi du micro et recommence.</span><div class="p-act"><button onclick="practice()">🎤 Réessayer</button><button onclick="hideResult()">✕</button></div>`;return;}
+  if(lastTryUrl)URL.revokeObjectURL(lastTryUrl);lastTryUrl=URL.createObjectURL(r.essai.blob);
+  const ok=r.essai.ok;
+  box.className='p-res '+(ok?'ok':'ko');
+  box.innerHTML=`<div class="p-score">${r.score}<small>%</small></div><b>${ok?'C’est bon ! Bravo 🎉':'Pratique encore 💪'}</b>
+    <span>${ok?'Ton essai est envoyé au prof pour validation.':'Écoute bien le prof et réessaie.'}</span>
+    <div class="p-act"><button onclick="playUrl(recs['${r.essai.key}'])">🔊 Le prof</button><button onclick="playUrl('${lastTryUrl}')">▶ Ma voix</button>${ok?'':'<button class="main" onclick="practice()">🎤 Réessayer</button>'}<button onclick="hideResult()">✕</button></div>`;
+  sound(ok?'ok':'ko');
+  if(ok){say('Bravo, c’est bien prononcé !','jump');confetti();}else say('Pratique encore, tu vas y arriver !','shake');
+}
+function hideResult(){const b=document.getElementById('pResult');if(b)b.remove();}
+function playUrl(u){if(!u)return;if(curAudio)curAudio.pause();curAudio=new Audio(u);curAudio.play().catch(()=>{});}
+
+/* Liste des essais à valider par le prof */
+let essaiUrls=[];
+function openEssais(){
+  essaiUrls.forEach(u=>URL.revokeObjectURL(u));essaiUrls=[];
+  const list=essais.slice().reverse();
+  const row=e=>{const u=URL.createObjectURL(e.blob);essaiUrls.push(u);
+    return `<li class="${e.verdict||''}"><span class="ar big">${e.text}</span><span class="meta">${e.label}<br><small>${e.date} · score ${e.score}% ${e.ok?'✓':'✗'}</small></span>
+      <span class="acts"><button onclick="playUrl('${u}')">▶ Élève</button><button onclick="playUrl(recs['${e.key}'])">🔊 Prof</button>
+      ${e.verdict?`<b>${e.verdict==='ok'?'✓ Validé':'↻ À revoir'}</b>`:`<button class="v ok" onclick="judge('${e.id}','ok')">✓ Valider</button><button class="v ko" onclick="judge('${e.id}','ko')">↻ À revoir</button>`}</span></li>`;};
+  openModal(`<h3>Essais de prononciation</h3>
+    <p>L’outil a fait un premier tri. <b>Toi, tu valides définitivement.</b></p>
+    <div class="lvl">Exigence de l’outil : ${['souple','normal','strict'].map(l=>`<button class="${l===level?'on':''}" onclick="level='${l}';openEssais()">${l}</button>`).join('')}</div>
+    <ul class="essais">${list.length?list.map(row).join(''):'<li class="empty">Aucun essai pour l’instant.</li>'}</ul>
+    <div class="row"><button class="main" onclick="closeModal()">Fermer</button></div>`);
+  document.getElementById('modalCard').classList.add('wide');
+}
+async function judge(id,v){const e=essais.find(x=>x.id===id);if(!e)return;e.verdict=v;
+  const [sid,sub]=e.key.split(':');
+  if(sub!==undefined){itemStatus[sid]=itemStatus[sid]||[];itemStatus[sid][+sub]=v;}else status[sid]=v;
+  await updEssai(e);sound(v==='ok'?'ok':'ko');openEssais();}
 
 /* ================= COMMANDES ================= */
 function toggleFull(){try{if(!document.fullscreenElement)document.documentElement.requestFullscreen().catch(()=>{});else document.exitFullscreen();}catch(e){}}
@@ -800,6 +947,9 @@ document.getElementById('btnKo').onclick=()=>validate('ko');
 document.getElementById('btnClear').onclick=clearCurrent;
 document.getElementById('btnListen').onclick=listen;
 document.getElementById('btnRec').onclick=toggleRec;
+document.getElementById('btnTry').onclick=practice;
+document.getElementById('btnEssais').onclick=openEssais;
+document.getElementById('btnEssais2').onclick=openEssais;
 document.getElementById('btnVoice').onclick=pickVoice;
 document.getElementById('btnFull').onclick=toggleFull;
 document.getElementById('btnFull2').onclick=toggleFull;
